@@ -5,9 +5,9 @@ CC = cc
 CFLAGS = -Werror -Wall -Wextra -g
 
 NAME = pipex
-LIBFTDIR = ../includes/libft
-LIBFT = ../includes/libft/libft.a
-SRC = pipex.c
+LIBFTDIR = libft
+LIBFT = libft/libft.a
+SRC = pipex.c pipex_utils.c
 
 OBJ = $(SRC:.c=.o)
 
@@ -19,9 +19,9 @@ $(LIBFT):
 $(NAME): $(OBJ) $(LIBFT)
 	$(CC) $(CFLAGS) $(OBJ) -L$(LIBFTDIR) -I$(LIBFTDIR) -lft -o $(NAME)
 
+# Add the -f flag to suppress errors
 clean:
 	rm -f *.o
-# Add the -f flag to suppress errors
 	$(MAKE) clean -C $(LIBFTDIR)
 
 fclean: clean
