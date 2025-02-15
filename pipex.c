@@ -6,7 +6,7 @@
 /*   By: fatima <fatima@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/13 16:28:11 by fatima            #+#    #+#             */
-/*   Updated: 2025/02/14 18:13:14 by fatima           ###   ########.fr       */
+/*   Updated: 2025/02/15 09:40:10 by fatima           ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -15,11 +15,14 @@
 void	check_in_out_files(int fd[2], char **av)
 {
 	fd[0] = open(av[1], O_RDONLY);
-	if (fd[0] == -1)
-		print_errors(3);
+	// if (fd[0] == -1)
+	// 	print_errors(3);
 	fd[1] = open(av[4], O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	if (fd[1] == -1)
+	{
+		close(fd[0]);
 		print_errors(4);
+	}
 }
 
 void	create_pipe(int fd[2])
@@ -31,31 +34,41 @@ void	create_pipe(int fd[2])
 		print_errors(5);
 }
 
-void	create_child_processes(int in_out_fd[2], int fd[2],
+void	close_fd(int in_out_fd[2], int fd[2])
+{
+	close(fd[0]);
+	close(fd[1]);
+	close(in_out_fd[0]);
+	close(in_out_fd[1]);
+}
+
+int	create_child_processes(int in_out_fd[2], int fd[2],
 		char **av, char **envp)
 {
 	pid_t	pid1;
-	pid_t	pid2;
 	int		status;
 
 	pid1 = fork();
 	if (pid1 == -1)
 		print_errors(2);
-	dup2(in_out_fd[0], STDIN_FILENO);
-	dup2(fd[1], STDOUT_FILENO);
-	break_down_command(av[2], envp);
-	pid2 = fork();
-	if (pid2 == -1)
-		print_errors(2);
-	dup2(fd[0], STDIN_FILENO);
-	dup2(in_out_fd[1], STDOUT_FILENO);
-	break_down_command(av[3], envp);
-	close(fd[0]);
-	close(fd[1]);
-	close(in_out_fd[0]);
-	close(in_out_fd[1]);
-	waitpid(pid1, &status, 0);
-	waitpid(pid2, &status, 0);
+	else if (pid1 == 0)
+	{
+		close(fd[0]);
+		dup2(in_out_fd[0], STDIN_FILENO);
+		close(in_out_fd[0]);
+		dup2(fd[1], STDOUT_FILENO);
+		break_down_command(av[2], envp);
+	}
+	else
+	{
+		close(fd[1]);
+		dup2(fd[0], STDIN_FILENO);
+		dup2(in_out_fd[1], STDOUT_FILENO);
+		status = break_down_command(av[3], envp);
+		close_fd(in_out_fd, fd);
+		waitpid(pid1, NULL, 0);
+	}
+	return (status);
 }
 
 int	main(int ac, char **av, char **envp)
@@ -67,9 +80,14 @@ int	main(int ac, char **av, char **envp)
 	{
 		check_in_out_files(in_out_fd, av);
 		create_pipe(fd);
-		create_child_processes(in_out_fd, fd, av, envp);
+		return (create_child_processes(in_out_fd, fd, av, envp));
 	}
 	else
 		print_errors(1);
 	return (0);
 }
+
+// break_down_command("cat -e", envp);
+
+// (void)ac;
+// (void)av;

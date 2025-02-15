@@ -6,110 +6,91 @@
 /*   By: fatima <fatima@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/13 16:30:57 by fatima            #+#    #+#             */
-/*   Updated: 2025/02/14 18:13:48 by fatima           ###   ########.fr       */
+/*   Updated: 2025/02/15 11:56:58 by fatima           ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
 #include "pipex.h"
 
-char	*find_command_path(char *cmd, char *envp[])
+void	child_process(int in_out_fd[2], int fd[2], char *cmd, char **envp)
 {
-    char *path = NULL;
-    for (int i = 0; envp[i] != NULL; i++) {
-        if (strncmp(envp[i], "PATH=", 5) == 0) {
-            path = envp[i] + 5; // Skip "PATH="
-            break;
-        }
-    }
-    if (!path) return NULL; // PATH not found
-
-    char *paths = strdup(path); // Copy PATH variable
-	// printf("%s\n", paths);
-    char *token = strtok(paths, ":"); // Split by ":"
-
-    char full_cmd[1024]; // Buffer for full path
-
-    while (token) {
-        snprintf(full_cmd, sizeof(full_cmd), "%s/%s", token, cmd); // Build path
-        if (access(full_cmd, X_OK) == 0) { // Check if executable
-            free(paths);
-            return strdup(full_cmd); // Return valid path
-        }
-        token = strtok(NULL, ":");
-    }
-    free(paths);
-    return NULL; // Command not found
+	// if (in_out_fd[0] == -1)
+	// {
+	// 	in_out_fd[0] = open("/dev/null", O_RDONLY);
+	// 	if (in_out_fd[0] == -1)
+	// 		print_errors(3);
+	// }
+	close(fd[0]);
+	dup2(in_out_fd[0], STDIN_FILENO);
+	close(in_out_fd[0]);
+	dup2(fd[1], STDOUT_FILENO);
+	break_down_command(cmd, envp);
 }
 
-int	count_no_arg(char **cmd)
+char	**get_paths(char *cmd, char **envp)
 {
-	int	i;
+	int		i;
+	char	**paths;
 
-	i = 1;
-	while (cmd[i][0] == '-' && !cmd[i])
-		i++;
-	return (i);
-}
-
-void	free_list(char **list)
-{
-	int	i;
-
-	if (!list)
-		return ;
 	i = 0;
-	while (list[i])
+	if (!cmd || !envp)
+		return (NULL);
+	while (envp[i] && ft_strncmp(envp[i], "PATH=", 5) != 0)
+		i++;
+	if (!envp[i])
+		return (NULL);
+	paths = ft_split(envp[i] + 5, ':');
+	if (!paths)
+		return (NULL);
+	return (paths);
+}
+
+char	*find_command_path(char *cmd, char **envp)
+{
+	int		i;
+	char	**paths;
+	char	*cmd_path;
+	char	*temp_path;
+
+	paths = get_paths(cmd, envp);
+	if (!paths)
+		return (NULL);
+	i = 0;
+	while (paths[i])
 	{
-		free(list[i]);
-		list[i] = NULL;
+		temp_path = ft_strjoin(paths[i], "/");
+		cmd_path = ft_strjoin(temp_path, cmd);
+		free(temp_path);
+		if (access(cmd_path, X_OK) == 0)
+		{
+			free_list(paths);
+			return (cmd_path);
+		}
+		free(cmd_path);
 		i++;
 	}
-	free(list);
+	free_list(paths);
+	return (NULL);
 }
 
-void	break_down_command(char *cmd_input, char **envp)
+int	break_down_command(char *cmd_input, char **envp)
 {
 	char	**cmd;
-	char	**cmd_arg;
-	int		i;
+	char	*cmd_path;
+	int		out;
 
 	cmd = ft_split(cmd_input, ' ');
 	if (!cmd)
 		print_errors(6);
-	i = 0;
-	cmd_arg = (char **)malloc(count_no_arg(cmd) * sizeof(char *));
-	if (!cmd_arg)
-		print_errors(7);
-	while (*cmd[++i] == '-' && !cmd[i])
+	cmd_path = find_command_path(cmd[0], envp);
+	if (!cmd_path)
 	{
-		cmd_arg[i - 1] = ft_strdup(cmd[i]);
-		if (!cmd_arg)
-			print_errors(7);
+		free_list(cmd);
+		print_errors(9);
 	}
-	cmd_arg[i - 1] = NULL;
-	if (execve(find_command_path(cmd[0], envp), cmd_arg, envp) == -1)
+	out = execve(cmd_path, cmd, envp);
+	if (out == -1)
 		print_errors(8);
 	free_list(cmd);
-	free_list(cmd_arg);
-}
-
-void	print_errors(int flag)
-{
-	if (flag == 1)
-		ft_putendl_fd("Too much or too few arguments", 2);
-	else if (flag == 2)
-		ft_putendl_fd("Fork failed", 2);
-	else if (flag == 3)
-		ft_putendl_fd("error opening infile", 2);
-	else if (flag == 4)
-		ft_putendl_fd("error opening outfile", 2);
-	else if (flag == 5)
-		ft_putendl_fd("failed to create pipe", 2);
-	else if (flag == 6)
-		ft_putendl_fd("Error while parsing command", 2);
-	else if (flag == 7)
-		ft_putendl_fd("Error while allocating memory", 2);
-	else if (flag == 8)
-		ft_putendl_fd("Failed to execute command", 2);
-	exit(EXIT_FAILURE);
+	return (out);
 }

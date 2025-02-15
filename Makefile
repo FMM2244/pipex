@@ -7,7 +7,7 @@ CFLAGS = -Werror -Wall -Wextra -g
 NAME = pipex
 LIBFTDIR = libft
 LIBFT = libft/libft.a
-SRC = pipex.c pipex_utils.c
+SRC = pipex.c pipex_utils.c extra_utils.c
 
 OBJ = $(SRC:.c=.o)
 
