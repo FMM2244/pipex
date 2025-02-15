@@ -11,9 +11,9 @@ SRC = pipex.c pipex_utils.c extra_utils.c
 
 OBJ = $(SRC:.c=.o)
 
-all: $(NAME)
+all: libft $(NAME)
 
-$(LIBFT):
+libft:
 	$(MAKE) -C $(LIBFTDIR)
 
 $(NAME): $(OBJ) $(LIBFT)
@@ -31,4 +31,4 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all clean fclean re
+.PHONY: all clean fclean re libft
