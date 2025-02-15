@@ -6,7 +6,7 @@
 /*   By: fatima <fatima@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/13 16:28:11 by fatima            #+#    #+#             */
-/*   Updated: 2025/02/15 09:40:10 by fatima           ###   ########.fr       */
+/*   Updated: 2025/02/15 14:28:16 by fatima           ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -15,8 +15,8 @@
 void	check_in_out_files(int fd[2], char **av)
 {
 	fd[0] = open(av[1], O_RDONLY);
-	// if (fd[0] == -1)
-	// 	print_errors(3);
+	if (fd[0] == -1)
+		print_errors(3);
 	fd[1] = open(av[4], O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	if (fd[1] == -1)
 	{
@@ -66,7 +66,8 @@ int	create_child_processes(int in_out_fd[2], int fd[2],
 		dup2(in_out_fd[1], STDOUT_FILENO);
 		status = break_down_command(av[3], envp);
 		close_fd(in_out_fd, fd);
-		waitpid(pid1, NULL, 0);
+		// wait(NULL);
+		waitpid(-1, NULL, 0);
 	}
 	return (status);
 }
@@ -86,8 +87,3 @@ int	main(int ac, char **av, char **envp)
 		print_errors(1);
 	return (0);
 }
-
-// break_down_command("cat -e", envp);
-
-// (void)ac;
-// (void)av;
