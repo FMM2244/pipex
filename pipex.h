@@ -6,7 +6,7 @@
 /*   By: fatima <fatima@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/13 16:28:49 by fatima            #+#    #+#             */
-/*   Updated: 2025/02/15 04:26:48 by fatima           ###   ########.fr       */
+/*   Updated: 2025/02/15 15:36:33 by fatima           ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -24,7 +24,7 @@
 # include "libft/libft.h"
 
 int		count_no_arg(char **cmd);
-int		break_down_command(char *cmd_input, char **envp);
+void	break_down_command(char *cmd_input, char **envp);
 void	print_errors(int flag);
 void	free_list(char **list);
 

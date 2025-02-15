@@ -6,7 +6,7 @@
 /*   By: fatima <fatima@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/13 16:30:57 by fatima            #+#    #+#             */
-/*   Updated: 2025/02/15 11:56:58 by fatima           ###   ########.fr       */
+/*   Updated: 2025/02/15 15:36:21 by fatima           ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -73,11 +73,10 @@ char	*find_command_path(char *cmd, char **envp)
 	return (NULL);
 }
 
-int	break_down_command(char *cmd_input, char **envp)
+void	break_down_command(char *cmd_input, char **envp)
 {
 	char	**cmd;
 	char	*cmd_path;
-	int		out;
 
 	cmd = ft_split(cmd_input, ' ');
 	if (!cmd)
@@ -88,9 +87,7 @@ int	break_down_command(char *cmd_input, char **envp)
 		free_list(cmd);
 		print_errors(9);
 	}
-	out = execve(cmd_path, cmd, envp);
-	if (out == -1)
-		print_errors(8);
+	execve(cmd_path, cmd, envp);
 	free_list(cmd);
-	return (out);
+	print_errors(8);
 }
